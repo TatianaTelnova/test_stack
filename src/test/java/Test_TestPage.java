@@ -14,11 +14,13 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
+import static org.openqa.selenium.support.ui.ExpectedConditions.numberOfWindowsToBe;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
 
 public class Test_TestPage {
     protected WebDriver driver;
     protected WebDriverWait wait;
+    public static final By BUTTON_LOGIN = By.xpath("//*[@id='app-wrapper']//*[@class='css-fjazzb']//*[@class='chakra-link css-sy2ljg']");
     public static final By BUTTON_CARDS = By.xpath("//*[@id='header-menu-submenu_height']//*[@id='popover-trigger-4']");
     public static final By BUTTON_MAP = By.xpath("//*[@id='header-menu-submenu_height']//*[@class='chakra-link css-1juz3op']");
     public static final By BUTTON_LIST = By.xpath("//*[@id='app-wrapper']//*[@class='chakra-container css-jf7n8r']//*[@class='chakra-button css-1frjy8u']");
@@ -29,6 +31,10 @@ public class Test_TestPage {
     public static final By CONTAINER_CONTENTS = By.xpath("//*[@id='app-wrapper']/main/div/div");
     public static final By CONTAINER_BLOCKS_ITEMS = By.xpath("//*[@id='app-wrapper']//*[@class='chakra-container css-1y2j3ap']//*[@class='css-6amlrk']//*[@class='chakra-accordion__item css-1sfe36n']");
     public static final By CONTAINER_QUESTIONS_ITEMS = By.xpath("//*[@id='app-wrapper']//*[@class='chakra-container css-1y2j3ap']//*[@class='css-1id61i2']//*[@class='chakra-accordion__item css-1cw6qg0']");
+    public static final By CONTAINER_LOGIN = By.xpath("(//*[@class='container']//*[@class='secondary-links']//*[@class='chevron inline-block'])[2]");
+    public static final By DEMO_LOGIN = By.xpath("//*[@class='container']//form[@id='login-form']//*[@id='login-button']");
+    public static final By DEMO_OTP_LOGIN = By.xpath("//*[@class='container']//form[@id='login-form']//*[@id='login-otp-button']");
+    public static final By USER_NAME = By.xpath("//*[@id='inner-wrapper']//*[@class='nav-user']//*[@id='representee-name']");
 
     @Before
     public void setUp() throws Exception {
@@ -50,19 +56,6 @@ public class Test_TestPage {
         TestPage tp = new TestPage(driver);
         Assert.assertEquals(6, tp.countElems(CONTAINER_CONTENTS));
     }
-//    @Test
-//    public void firstTest() {
-//        driver.get("https://www.bspb.ru/");
-//        TestPage tp = new TestPage(driver);
-//        tp.clickElem(BUTTON_MAP);
-//    }
-//
-//    @Test
-//    public void secondTest() {
-//        driver.get("https://www.bspb.ru/map?is=bankomats");
-//        TestPage tp = new TestPage(driver);
-//        tp.clickElem(BUTTON_LIST);
-//    }
 
     // проверка загрузки на странице 4 адресов банкоматов
     @Test
@@ -138,5 +131,38 @@ public class Test_TestPage {
         Actions action = new Actions(driver);
         action.scrollByAmount(0, deltaY).perform();
         Assert.assertEquals(true, tp.checkExist(BUTTON_CONTACT));
+    }
+
+    @Test
+    public void demoNameTest() {
+        driver.get("https://www.bspb.ru/");
+        TestPage tp = new TestPage(driver);
+        String originalWindow = driver.getWindowHandle();
+        tp.clickElem(BUTTON_LOGIN);
+        wait.until(numberOfWindowsToBe(2));
+        // перешли к вкладке входа в личный кабинет
+        for (String windowHandle : driver.getWindowHandles()) {
+            if (!originalWindow.contentEquals(windowHandle)) {
+                driver.switchTo().window(windowHandle);
+                break;
+            }
+        }
+        wait.until(visibilityOfElementLocated(CONTAINER_LOGIN));
+        String secondWindow = driver.getWindowHandle();
+        tp.clickElem(CONTAINER_LOGIN);
+        wait.until(numberOfWindowsToBe(3));
+        // перешли к вкладке DEMO
+        for (String windowHandle : driver.getWindowHandles()) {
+            if (!originalWindow.contentEquals(windowHandle) && !secondWindow.contentEquals(windowHandle)) {
+                driver.switchTo().window(windowHandle);
+                break;
+            }
+        }
+        wait.until(visibilityOfElementLocated(DEMO_LOGIN));
+        tp.clickElem(DEMO_LOGIN);
+        // зашли в DEMO кабинет
+        tp.clickElem(DEMO_OTP_LOGIN);
+        // нашли и проверили имя
+        Assert.assertEquals("Королёва Ольга", tp.getText(USER_NAME).trim());
     }
 }
