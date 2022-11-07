@@ -1,6 +1,7 @@
 package org.example;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -17,5 +18,14 @@ public class TestPage {
 
     public void clickElem(By elem) {
         driver.findElement(elem).click();
+    }
+
+    public boolean checkExist(By elem) {
+        try {
+            driver.findElement(elem);
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
     }
 }
