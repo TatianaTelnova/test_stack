@@ -3,6 +3,7 @@ package org.example;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class TestPage {
     protected WebDriver driver;
@@ -30,5 +31,9 @@ public class TestPage {
 
     public String getText(By elem) {
         return driver.findElement(elem).getAttribute("innerText");
+    }
+
+    public WebElement getElem(By elem) {
+        return driver.findElement(elem);
     }
 }

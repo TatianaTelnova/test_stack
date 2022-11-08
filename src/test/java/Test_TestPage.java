@@ -9,13 +9,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
-import static org.openqa.selenium.support.ui.ExpectedConditions.numberOfWindowsToBe;
-import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
+import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public class Test_TestPage {
     protected WebDriver driver;
@@ -49,7 +47,7 @@ public class Test_TestPage {
         driver.quit();
     }
 
-    // проверка количетсва элементов на главной странице
+    // проверка количества элементов на главной странице
     @Test
     public void contentVisibilityTest() {
         driver.get("https://www.bspb.ru/");
@@ -84,11 +82,11 @@ public class Test_TestPage {
     public void openMenu_countBlocksTest() throws InterruptedException {
         driver.get("https://www.bspb.ru/");
         TestPage tp = new TestPage(driver);
-        WebElement we = driver.findElement(BUTTON_CARDS);
+        WebElement we = tp.getElem(BUTTON_CARDS);
         Actions action = new Actions(driver);
         action.moveToElement(we).perform();
-        action.moveToElement(driver.findElement(BUTTON_FAQ)).click().perform();
-        wait.until(ExpectedConditions.elementToBeClickable(CONTAINER_BLOCKS_ITEMS));
+        action.moveToElement(tp.getElem(BUTTON_FAQ)).click().perform();
+        wait.until(elementToBeClickable(CONTAINER_BLOCKS_ITEMS));
         Assert.assertEquals(17, tp.countElems(CONTAINER_BLOCKS_ITEMS));
     }
 
@@ -97,7 +95,7 @@ public class Test_TestPage {
     public void countFaqTest() {
         driver.get("https://www.bspb.ru/retail/faq");
         TestPage tp = new TestPage(driver);
-        wait.until(ExpectedConditions.elementToBeClickable(CONTAINER_QUESTIONS_ITEMS));
+        wait.until(elementToBeClickable(CONTAINER_QUESTIONS_ITEMS));
         Assert.assertEquals(100, tp.countElems(CONTAINER_QUESTIONS_ITEMS));
     }
 
@@ -106,7 +104,7 @@ public class Test_TestPage {
     public void filterCountFaqTest() {
         driver.get("https://www.bspb.ru/retail/faq");
         TestPage tp = new TestPage(driver);
-        wait.until(ExpectedConditions.elementToBeClickable(CONTAINER_QUESTIONS_ITEMS));
+        wait.until(elementToBeClickable(CONTAINER_QUESTIONS_ITEMS));
         int count_quest = tp.countElems(CONTAINER_QUESTIONS_ITEMS);
         tp.clickElem(BUTTON_BLOCK);
         wait.until(new ExpectedCondition<Boolean>() {
@@ -117,7 +115,7 @@ public class Test_TestPage {
                     return true;
             }
         });
-        Assert.assertEquals(2, tp.countElems(CONTAINER_QUESTIONS_ITEMS));
+        Assert.assertTrue(tp.countElems(CONTAINER_QUESTIONS_ITEMS) < 100);
     }
 
     // прокрутка страницы вниз и проверка наличия кнопки "Связаться с нами"
@@ -125,22 +123,23 @@ public class Test_TestPage {
     public void footerContactTest() {
         driver.get("https://www.bspb.ru/");
         TestPage tp = new TestPage(driver);
-        wait.until(ExpectedConditions.elementToBeClickable(BUTTON_CARDS));
-        WebElement elem = driver.findElement(BUTTON_CONTACT);
-        int deltaY = elem.getRect().y;
+        wait.until(elementToBeClickable(BUTTON_CARDS));
+        WebElement we = tp.getElem(BUTTON_CONTACT);
+        int deltaY = we.getRect().y;
         Actions action = new Actions(driver);
         action.scrollByAmount(0, deltaY).perform();
-        Assert.assertEquals(true, tp.checkExist(BUTTON_CONTACT));
+        Assert.assertTrue(tp.checkExist(BUTTON_CONTACT));
     }
 
+    // проверка работы DEMO личного кабинета
     @Test
     public void demoNameTest() {
         driver.get("https://www.bspb.ru/");
         TestPage tp = new TestPage(driver);
         String originalWindow = driver.getWindowHandle();
+        // перешли к вкладке входа в личный кабинет
         tp.clickElem(BUTTON_LOGIN);
         wait.until(numberOfWindowsToBe(2));
-        // перешли к вкладке входа в личный кабинет
         for (String windowHandle : driver.getWindowHandles()) {
             if (!originalWindow.contentEquals(windowHandle)) {
                 driver.switchTo().window(windowHandle);
@@ -149,9 +148,9 @@ public class Test_TestPage {
         }
         wait.until(visibilityOfElementLocated(CONTAINER_LOGIN));
         String secondWindow = driver.getWindowHandle();
+        // перешли к вкладке DEMO
         tp.clickElem(CONTAINER_LOGIN);
         wait.until(numberOfWindowsToBe(3));
-        // перешли к вкладке DEMO
         for (String windowHandle : driver.getWindowHandles()) {
             if (!originalWindow.contentEquals(windowHandle) && !secondWindow.contentEquals(windowHandle)) {
                 driver.switchTo().window(windowHandle);
@@ -159,8 +158,9 @@ public class Test_TestPage {
             }
         }
         wait.until(visibilityOfElementLocated(DEMO_LOGIN));
-        tp.clickElem(DEMO_LOGIN);
         // зашли в DEMO кабинет
+        tp.clickElem(DEMO_LOGIN);
+        wait.until(visibilityOfElementLocated(DEMO_OTP_LOGIN));
         tp.clickElem(DEMO_OTP_LOGIN);
         // нашли и проверили имя
         Assert.assertEquals("Королёва Ольга", tp.getText(USER_NAME).trim());
